@@ -42,6 +42,7 @@ class CKKSKeyGenerator:
         Args:
             params (Parameters): Parameters including polynomial degree,
                 plaintext, and ciphertext modulus.
+        This makes a secret key that's very small(only 0, 1, -1)
         """
         key = sample_hamming_weight_vector(params.poly_degree, params.hamming_weight)
         self.secret_key = SecretKey(Polynomial(params.poly_degree, key))
@@ -56,6 +57,7 @@ class CKKSKeyGenerator:
         mod = self.params.big_modulus
 
         pk_coeff = Polynomial(params.poly_degree, sample_uniform(0, mod, params.poly_degree))
+        # triangle similar to the hamming only -1, 0, 1
         pk_error = Polynomial(params.poly_degree, sample_triangle(params.poly_degree))
         p0 = pk_coeff.multiply(self.secret_key.s, mod)
         p0 = p0.scalar_multiply(-1, mod)
@@ -81,10 +83,15 @@ class CKKSKeyGenerator:
         swk_error = Polynomial(self.params.poly_degree, sample_triangle(self.params.poly_degree))
 
         sw0 = swk_coeff.multiply(self.secret_key.s, mod_squared)
+        # multiply a random polynomial to the current secret key sampled from q
         sw0 = sw0.scalar_multiply(-1, mod_squared)
+        # lower scale down to 1/q
         sw0 = sw0.add(swk_error, mod_squared)
+        # Add error
         temp = new_key.scalar_multiply(mod, mod_squared)
+        # multiply new key polynomial by q
         sw0 = sw0.add(temp, mod_squared)
+        # Add it
         sw1 = swk_coeff
         return PublicKey(sw0, sw1)
 
@@ -110,6 +117,7 @@ class CKKSKeyGenerator:
 
         # Generate K_5^r(s).
         new_key = self.secret_key.s.rotate(rotation)
+        # rotate polynomial
         rk = self.generate_switching_key(new_key)
         return RotationKey(rotation, rk)
 

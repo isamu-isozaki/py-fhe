@@ -30,10 +30,14 @@ def main():
     message2 = [0.2, 0.11, 0.4 + 0.67j, 0.9 + 0.99j]
     plain1 = encoder.encode(message1, scaling_factor)
     plain2 = encoder.encode(message2, scaling_factor)
+    print(plain1)
+    print(plain2)
     ciph1 = encryptor.encrypt(plain1)
     ciph2 = encryptor.encrypt(plain2)
     ciph_prod = evaluator.multiply(ciph1, ciph2, relin_key)
     decrypted_prod = decryptor.decrypt(ciph_prod)
+    print(decrypted_prod)
+    # Product will be in the ring
     decoded_prod = encoder.decode(decrypted_prod)
     
     print(decoded_prod)

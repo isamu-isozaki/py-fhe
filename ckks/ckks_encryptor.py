@@ -79,15 +79,24 @@ class CKKSEncryptor:
         random_vec = Polynomial(self.poly_degree, sample_triangle(self.poly_degree))
         error1 = Polynomial(self.poly_degree, sample_triangle(self.poly_degree))
         error2 = Polynomial(self.poly_degree, sample_triangle(self.poly_degree))
+        # all 3 are vectors with only 0, 1, -1
 
         c0 = p0.multiply(random_vec, self.coeff_modulus, crt=self.crt_context)
+        # Multiply -sa+e by random 0, 1, -1 vec
         c0 = error1.add(c0, self.coeff_modulus)
+        # add error of 0, 1, -1
         c0 = c0.add(plain.poly, self.coeff_modulus)
+        # add plain text polynomial to here.
         c0 = c0.mod_small(self.coeff_modulus)
+        # put in range -q/2 to q/2
+
 
         c1 = p1.multiply(random_vec, self.coeff_modulus, crt=self.crt_context)
+        # Multiply by the same random vector
         c1 = error2.add(c1, self.coeff_modulus)
+        # Add a different error
         c1 = c1.mod_small(self.coeff_modulus)
+        # put in range -q/2 to q/2
 
         return Ciphertext(c0, c1, plain.scaling_factor, self.coeff_modulus)
 

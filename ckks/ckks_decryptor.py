@@ -40,12 +40,20 @@ class CKKSDecryptor:
         (c0, c1) = (ciphertext.c0, ciphertext.c1)
 
         message = c1.multiply(self.secret_key.s, ciphertext.modulus, crt=self.crt_context)
+        # Multiply c1 with s given the current crt context(just to avoid overflow)
         message = c0.add(message, ciphertext.modulus)
+        # Add and you have the message
+        # this is the same as
+        """
+        public key is (-sa+e, a)
+        encrypted it's (random_vec*(-sa+e)+e1+message, ramdom_vec*a+e2)
+        random_vec*(-sa+e)+e1+message+s*(ramdom_vec*a+e2)=ramdom_vec*e+e1+s*e2+message which is roughly message
+        """
         if c2:
             secret_key_squared = self.secret_key.s.multiply(self.secret_key.s, ciphertext.modulus)
             c2_message = c2.multiply(secret_key_squared, ciphertext.modulus, crt=self.crt_context)
             message = message.add(c2_message, ciphertext.modulus)
-
+        # put in range q/2 to -q/2.
         message = message.mod_small(ciphertext.modulus)
         return Plaintext(message, ciphertext.scaling_factor)
         

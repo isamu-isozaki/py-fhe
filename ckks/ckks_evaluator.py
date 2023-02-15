@@ -139,7 +139,7 @@ class CKKSEvaluator:
             % (math.log(ciph1.modulus, 2), math.log(ciph2.modulus, 2))
 
         modulus = ciph1.modulus
-
+        # (c1+c0s)(c1'+c0's)=c1c1'+(c1c0'+c1'c0)s+c0c0's^2
         c0 = ciph1.c0.multiply(ciph2.c0, modulus, crt=self.crt_context)
         c0 = c0.mod_small(modulus)
 
@@ -257,12 +257,15 @@ class CKKSEvaluator:
         """
 
         c0 = key.p0.multiply(ciph.c1, ciph.modulus * self.big_modulus, crt=self.crt_context)
+        # multiply first public key by c1, a rotated and error added A, a rotated polynomial
         c0 = c0.mod_small(ciph.modulus * self.big_modulus)
         c0 = c0.scalar_integer_divide(self.big_modulus)
         c0 = c0.add(ciph.c0, ciph.modulus)
+        # add c0 to this
         c0 = c0.mod_small(ciph.modulus)
 
         c1 = key.p1.multiply(ciph.c1, ciph.modulus * self.big_modulus, crt=self.crt_context)
+
         c1 = c1.mod_small(ciph.modulus * self.big_modulus)
         c1 = c1.scalar_integer_divide(self.big_modulus)
         c1 = c1.mod_small(ciph.modulus)
@@ -286,7 +289,9 @@ class CKKSEvaluator:
         """
         rot_ciph0 = ciph.c0.rotate(rotation)
         rot_ciph1 = ciph.c1.rotate(rotation)
+        # Rotate the polynomials
         rot_ciph = Ciphertext(rot_ciph0, rot_ciph1, ciph.scaling_factor, ciph.modulus)
+        # Then switch keys
         return self.switch_key(rot_ciph, rot_key.key)
 
     def conjugate(self, ciph, conj_key):
